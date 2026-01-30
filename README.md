@@ -7,9 +7,11 @@ A hands-on tutorial for learning `@solana/kit` - the modern TypeScript SDK for S
 ```
 solana-kit/
 ├── src/
-│   ├── index.ts     # Main tutorial code
-│   └── client.ts    # Reusable client setup
-├── learnings.md     # Beginner-friendly explanations
+│   ├── index.ts        # Main tutorial code
+│   ├── client.ts       # Reusable client setup
+│   └── create-mint.ts  # Token mint creation
+├── learnings.md        # Beginner-friendly explanations
+├── README.md           # This file
 └── package.json
 ```
 
@@ -43,11 +45,39 @@ A reusable client that bundles:
 const client = await createClient();
 ```
 
-### 2. Tutorial Code (`index.ts`)
+### 2. Token Mint Creation (`create-mint.ts`)
+
+A complete example of building and sending a transaction:
+- Build instructions (createAccount + initializeMint)
+- Create transaction message with fee payer and blockhash
+- Sign with multiple signers
+- Send and confirm
+
+```typescript
+const mint = await createMint(client, { decimals: 9 });
+console.log(mint.address);  // Your new token!
+```
+
+### 3. Tutorial Code (`index.ts`)
 
 - Get account balance
 - Generate new wallets
 - Airdrop SOL to wallets
+- Create a token mint
+
+---
+
+## 🏗️ Transaction Building Flow
+
+```
+┌─────────────────────────────────────────────────────┐
+│  1. PREPARE        Get blockhash, generate keypairs │
+│  2. BUILD          Create instructions              │
+│  3. MESSAGE        Bundle with fee payer + lifetime │
+│  4. SIGN           All required signers             │
+│  5. SEND           Submit to network                │
+└─────────────────────────────────────────────────────┘
+```
 
 ---
 

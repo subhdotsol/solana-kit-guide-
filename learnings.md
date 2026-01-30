@@ -145,6 +145,91 @@ wallet.address      // 📍 Public key - share this
 | `wallet` | Your keypair (identity) | 🪪 Your ID card |
 | `airdrop` | Free SOL (testnet only!) | 🎁 Free sample |
 | `lamports` | Smallest SOL unit | 1 SOL = 1,000,000,000 lamports |
+| `mint` | Token definition (like USD vs EUR) | 🏦 Currency type |
+| `instruction` | One action on Solana | 📝 One line on a form |
+| `transaction` | Bundle of instructions | 📄 The whole form |
+
+---
+
+## 🏗️ Building Transactions (The 5-Step Recipe)
+
+Think of a transaction like filling out a form at a bank:
+
+```
+┌─────────────────────────────────────────────────┐
+│  SOLANA TRANSACTION FORM                        │
+├─────────────────────────────────────────────────┤
+│  From: [Your Wallet Address]     ← Fee Payer    │
+│  Valid Until: Block #12345       ← Lifetime     │
+├─────────────────────────────────────────────────┤
+│  Action 1: Create account        ← Instruction  │
+│  Action 2: Initialize mint       ← Instruction  │
+├─────────────────────────────────────────────────┤
+│  Signature: _______________      ← Your Sign    │
+│  Signature: _______________      ← Mint Sign    │
+└─────────────────────────────────────────────────┘
+```
+
+### The 5 Steps in Code:
+
+```typescript
+// Step 1: Prepare inputs
+const mint = await generateKeyPairSigner();
+const { value: latestBlockhash } = await client.rpc.getLatestBlockhash().send();
+
+// Step 2: Build instructions (what you want to do)
+const createAccountIx = getCreateAccountInstruction({ ... });
+const initializeMintIx = getInitializeMintInstruction({ ... });
+
+// Step 3: Build the transaction message
+const transactionMessage = appendTransactionMessageInstructions(
+    [createAccountIx, initializeMintIx],           // 📝 What to do
+    setTransactionMessageLifetimeUsingBlockhash(   // ⏰ When it expires
+        latestBlockhash,
+        setTransactionMessageFeePayer(             // 💰 Who pays
+            client.wallet.address,
+            createTransactionMessage({ version: 0 })
+        )
+    )
+);
+
+// Step 4: Sign it
+const signedTx = await signTransactionMessageWithSigners(transactionMessage);
+
+// Step 5: Send it!
+await sendAndConfirm(signedTx, { commitment: 'confirmed' });
+```
+
+### Why So Many Steps?
+
+| Step | Why It's Needed |
+|------|-----------------|
+| **Prepare** | Get fresh blockhash (transactions expire!) |
+| **Build Instructions** | Tell Solana WHAT to do |
+| **Build Message** | Package everything together |
+| **Sign** | Prove you authorized this |
+| **Send** | Actually do it on the blockchain! |
+
+---
+
+## 🪙 Creating a Token Mint
+
+A **mint** is like a currency definition. Before you can have tokens, you need to create a mint:
+
+```typescript
+import { createMint } from './create-mint.ts';
+
+const mint = await createMint(client, { decimals: 9 });
+console.log(mint.address);  // Your new token's ID!
+```
+
+### What `createMint` Does:
+
+1. **Creates an account** on Solana for the mint data
+2. **Initializes it** as a token mint with:
+   - `decimals` - How divisible? (9 = like SOL)
+   - `mintAuthority` - Who can create more tokens?
+   - `freezeAuthority` - Who can freeze accounts?
 
 ---
 
@@ -160,9 +245,17 @@ bun start
 
 You should see:
 ```
-Balance: 9.61972224 SOL
-Wallet 2 Address: abc123...
+👛 Client Wallet Address: 4Myr...
+Token Program Balance: 9.61972224 SOL
+
+👛 Wallet 2 Address: 3Qe9...
 Wallet 2 Balance: 1 SOL
+
+📦 Creating a new token mint...
+✅ Mint created! Signature: 3y9Y...
+🪙 Mint Address: Gjm8...
+
+🎉 Token mint created successfully!
 ```
 
-🎉 Congratulations! You're now talking to Solana!
+🎉 Congratulations! You just created your own token on Solana!

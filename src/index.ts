@@ -23,6 +23,7 @@ const sendAndConfirmTransaction = sendAndConfirmTransactionFactory({
 
 import { address } from '@solana/kit';
 import { createClient } from './client.ts';
+import { createMint } from './create-mint.ts';
  
 // Run the tutorial.
 tutorial();
@@ -31,15 +32,17 @@ async function tutorial() {
 
     // step 1 : getting the balance
     const client = await createClient(); // create the client
+    console.log(`\n👛 Client Wallet Address: ${client.wallet.address}`);
+
     const account = address('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'); // create the address
     const { value: balance } = await client.rpc.getBalance(account).send(); // get the balance
-    console.log(`Balance: ${balance} lamports.`); // print the balance
-    console.log(`Balance: ${Number(balance) / 1_000_000_000} SOL`);
+    console.log(`Token Program Balance: ${balance} lamports.`);
+    console.log(`Token Program Balance: ${Number(balance) / 1_000_000_000} SOL`);
 
 
-    // getting an airdrop on local validator
+    // step 2: getting an airdrop on local validator
     const wallet2 = await generateKeyPairSigner(); 
-    console.log(`\nWallet 2 Address: ${wallet2.address}`);
+    console.log(`\n👛 Wallet 2 Address: ${wallet2.address}`);
     
     // Use local airdrop via client's rpc
     const localAirdrop = airdropFactory({ rpc: client.rpc, rpcSubscriptions: client.rpcSubscriptions } as any);
@@ -54,5 +57,9 @@ async function tutorial() {
     console.log(`Wallet 2 Balance: ${Number(newBalance) / 1_000_000_000} SOL`);
 
 
-    
+    // step 3: Create a token mint! 🪙
+    console.log(`\n📦 Creating a new token mint...`);
+    const mint = await createMint(client, { decimals: 9 });
+    console.log(`\n🎉 Token mint created successfully!`);
+    console.log(`   Use this mint address to create token accounts and mint tokens.`);
 }
